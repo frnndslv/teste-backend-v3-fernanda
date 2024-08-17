@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Xml.Linq;
 
 namespace TheatricalPlayersRefactoringKata;
 
@@ -55,7 +54,6 @@ public class StatementPrinter
     {
         double totalAmount = 0;
         var volumeCredits = 0;
-        CultureInfo cultureInfo = new CultureInfo("en-US");
 
 
         Statement statement = new Statement();
@@ -108,10 +106,12 @@ public class StatementPrinter
         statement.EarnedCredits = volumeCredits;
 
         System.Xml.Serialization.XmlSerializer x = new System.Xml.Serialization.XmlSerializer(statement.GetType());
+
         using (StringWriter textWriter = new Utf8StringWriter())
         {
             x.Serialize(textWriter, statement);
-            return textWriter.ToString();
+            var result = textWriter.ToString();
+            return result;
         }
     }
 

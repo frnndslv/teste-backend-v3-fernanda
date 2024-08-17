@@ -1,13 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 
 namespace TheatricalPlayersRefactoringKata;
 
 public class Utf8StringWriter : StringWriter
 {
-    public override System.Text.Encoding Encoding
-    {
-        get { return new System.Text.UTF8Encoding(false); }
-    }
+    public override Encoding Encoding { get { return Encoding.UTF8; } }
 }
