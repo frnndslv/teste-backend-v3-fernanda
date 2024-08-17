@@ -1,7 +1,9 @@
+using System;
 using System.Collections.Generic;
 
 namespace TheatricalPlayersRefactoringKata;
 
+[Serializable]
 public class Invoice
 {
     private string _customer;
@@ -14,6 +16,11 @@ public class Invoice
     {
         this._customer = customer;
         this._performances = performance;
+    }
+
+    public Invoice()
+    {
+
     }
 
 }

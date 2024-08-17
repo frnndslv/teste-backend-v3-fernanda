@@ -1,5 +1,8 @@
+using System;
+
 namespace TheatricalPlayersRefactoringKata;
 
+[Serializable]
 public class Performance
 {
     private string _playId;
@@ -12,6 +15,11 @@ public class Performance
     {
         this._playId = playID;
         this._audience = audience;
+    }
+
+    public Performance()
+    {
+
     }
 
 }
