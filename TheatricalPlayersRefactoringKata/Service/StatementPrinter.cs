@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 
+
 namespace TheatricalPlayersRefactoringKata;
 
 public class StatementPrinter
 {
+
     public string Print(Invoice invoice, Dictionary<string, Play> plays)
     {
         double totalAmount = 0;
@@ -14,35 +16,39 @@ public class StatementPrinter
         var result = string.Format("Statement for {0}\n", invoice.Customer);
         CultureInfo cultureInfo = new CultureInfo("en-US");
 
-        foreach (var perf in invoice.Performances)
+        foreach (var performance in invoice.Performances)
         {
-            var play = plays[perf.PlayId];
+            var play = plays[performance.PlayId];
             var lines = play.Lines;
             if (lines < 1000) lines = 1000;
             if (lines > 4000) lines = 4000;
             double thisAmount = lines * 10;
+
+            Genre genre = new Genre();
+            genre.ThisAmount = thisAmount;
+            genre.Performance = performance;
+
             switch (play.Type)
             {
                 case "tragedy":
-                    thisAmount = calcTragedy(perf, thisAmount);
-
+                    thisAmount = genre.CalcTragedyAmount();
                     break;
                 case "comedy":
-                    thisAmount = calcComedy(perf, thisAmount);
+                    thisAmount = genre.CalcComedyAmount();
                     break;
                 case "history":
-                    thisAmount = calcHistory(perf, thisAmount);
+                    thisAmount = genre.CalcHistoryAmount();
                     break;
                 default:
                     throw new Exception("unknown type: " + play.Type);
             }
             // add volume credits
-            volumeCredits += Math.Max(perf.Audience - 30, 0);
+            volumeCredits += Math.Max(performance.Audience - 30, 0);
             // add extra credit for every ten comedy attendees
-            if ("comedy" == play.Type) volumeCredits += (int)Math.Floor((decimal)perf.Audience / 5);
+            if ("comedy" == play.Type) volumeCredits += (int)Math.Floor((decimal)performance.Audience / 5);
 
             // print line for this order
-            result += String.Format(cultureInfo, "  {0}: {1:C} ({2} seats)\n", play.Name, Convert.ToDecimal(thisAmount / 100), perf.Audience);
+            result += String.Format(cultureInfo, "  {0}: {1:C} ({2} seats)\n", play.Name, Convert.ToDecimal(thisAmount / 100), performance.Audience);
             totalAmount += thisAmount;
         }
         result += String.Format(cultureInfo, "Amount owed is {0:C}\n", Convert.ToDecimal(totalAmount / 100));
@@ -52,6 +58,7 @@ public class StatementPrinter
 
     public string PrintXML(Invoice invoice, Dictionary<string, Play> plays)
     {
+
         double totalAmount = 0;
         var volumeCredits = 0;
 
@@ -61,44 +68,49 @@ public class StatementPrinter
         statement.Items = new List<Item>();
 
 
-        foreach (var perf in invoice.Performances)
+        foreach (var performance in invoice.Performances)
         {
+            Genre genre = new Genre();
             Item item = new Item();
+
             int singleItemCreditsEarned = 0;
-            var play = plays[perf.PlayId];
+            var play = plays[performance.PlayId];
             var lines = play.Lines;
             if (lines < 1000) lines = 1000;
             if (lines > 4000) lines = 4000;
             double thisAmount = lines * 10;
+
+            genre.ThisAmount = thisAmount;
+            genre.Performance = performance;
+
             switch (play.Type)
             {
                 case "tragedy":
-                    thisAmount = calcTragedy(perf, thisAmount);
-
+                    thisAmount = genre.CalcTragedyAmount();
                     break;
                 case "comedy":
-                    thisAmount = calcComedy(perf, thisAmount);
+                    thisAmount = genre.CalcComedyAmount();
                     break;
                 case "history":
-                    thisAmount = calcHistory(perf, thisAmount);
+                    thisAmount = genre.CalcHistoryAmount();
                     break;
                 default:
                     throw new Exception("unknown type: " + play.Type);
             }
             // add volume credits
-            volumeCredits += Math.Max(perf.Audience - 30, 0);
+            volumeCredits += Math.Max(performance.Audience - 30, 0);
             // add extra credit for every ten comedy attendees
-            if ("comedy" == play.Type) volumeCredits += (int)Math.Floor((decimal)perf.Audience / 5);
+            if ("comedy" == play.Type) volumeCredits += (int)Math.Floor((decimal)performance.Audience / 5);
 
-            singleItemCreditsEarned += Math.Max(perf.Audience - 30, 0);
+            singleItemCreditsEarned += Math.Max(performance.Audience - 30, 0);
             // add extra credit for every ten comedy attendees
-            if ("comedy" == play.Type) singleItemCreditsEarned += (int)Math.Floor((decimal)perf.Audience / 5);
+            if ("comedy" == play.Type) singleItemCreditsEarned += (int)Math.Floor((decimal)performance.Audience / 5);
 
             totalAmount += thisAmount;
 
             item.AmountOwed = (double)Convert.ToDecimal(thisAmount / 100);
             item.EarnedCredits = singleItemCreditsEarned;
-            item.Seats = perf.Audience;
+            item.Seats = performance.Audience;
             statement.Items.Add(item);
         }
 
@@ -114,28 +126,4 @@ public class StatementPrinter
             return result;
         }
     }
-
-    public double calcComedy(Performance perf, double thisAmount)
-    {
-        if (perf.Audience > 20)
-        {
-            thisAmount += 10000 + 500 * (perf.Audience - 20);
-        }
-        thisAmount += 300 * perf.Audience;
-
-        return thisAmount;
-    }
-    public double calcTragedy(Performance perf, double thisAmount)
-    {
-        if (perf.Audience > 30)
-        {
-            thisAmount += 1000 * (perf.Audience - 30);
-        }
-        return thisAmount;
-    }
-    public double calcHistory(Performance perf, double thisAmount)
-    {
-        return calcTragedy(perf, thisAmount) + calcComedy(perf, thisAmount);
-    }
-
 }
